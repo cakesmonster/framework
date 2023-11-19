@@ -1,0 +1,13 @@
+<mapper namespace="com.cakemonster.framework.mapper.UserDao">
+
+    <!--sql的唯一标识：namespace.id来组成 ： statementId-->
+    <select id="findAll" resultType="com.cakemonster.framework.model.User">
+        select * from user
+    </select>
+
+    <select id="findByCondition" resultType="com.cakemonster.framework.model.User"
+            parameterType="com.cakemonster.framework.model.User">
+        select * from user where id = #{id} and name = #{name}
+    </select>
+
+</mapper>
