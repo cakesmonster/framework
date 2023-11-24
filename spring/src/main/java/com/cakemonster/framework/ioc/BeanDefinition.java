@@ -3,6 +3,7 @@ package com.cakemonster.framework.ioc;
 import com.google.common.collect.Lists;
 import lombok.Data;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -20,7 +21,21 @@ public class BeanDefinition {
 
     private String beanClassName;
 
+    private AnnotationMetaData metaData;
+
+    private String resource;
+
     private List<PropertyValue> propertyValues = Lists.newArrayList();
+
+    public BeanDefinition() {
+    }
+
+    public BeanDefinition(AnnotationMetaData metaData) {
+        this.metaData = metaData;
+        setBeanClass(metaData.getClazz());
+        setBeanClassName(metaData.getBeanClassName());
+        setResource(metaData.getResource());
+    }
 
     public void setBeanClassName(String beanClassName) {
         this.beanClassName = beanClassName;

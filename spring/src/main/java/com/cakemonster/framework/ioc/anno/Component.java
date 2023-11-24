@@ -3,16 +3,14 @@ package com.cakemonster.framework.ioc.anno;
 import java.lang.annotation.*;
 
 /**
- * Controller
+ * Component
  *
  * @author cakemonster
- * @date 2023/11/19
+ * @date 2023/11/24
  */
 @Documented
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Component
-public @interface Controller {
-
+public @interface Component {
     String value() default "";
 }
