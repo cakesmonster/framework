@@ -1,14 +1,11 @@
 package com.cakemonster.framework.controller;
 
-import com.cakemonster.framework.ioc.anno.Service;
-
 /**
  * TestService
  *
  * @author cakemonster
- * @date 2023/11/22
+ * @date 2023/11/25
  */
-@Service
-public class TestService {
-
+public interface TestService {
+    void sayHello();
 }

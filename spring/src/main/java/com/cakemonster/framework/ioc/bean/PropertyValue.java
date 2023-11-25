@@ -1,4 +1,4 @@
-package com.cakemonster.framework.ioc;
+package com.cakemonster.framework.ioc.bean;
 
 import lombok.Data;
 

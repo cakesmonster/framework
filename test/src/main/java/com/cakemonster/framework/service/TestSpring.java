@@ -1,7 +1,8 @@
 package com.cakemonster.framework.service;
 
-import com.cakemonster.framework.ioc.AnnotationConfigApplicationContext;
-import com.cakemonster.framework.ioc.ApplicationContext;
+import com.cakemonster.framework.controller.TestController;
+import com.cakemonster.framework.ioc.context.AnnotationConfigApplicationContext;
+import com.cakemonster.framework.ioc.context.ApplicationContext;
 
 /**
  * TestSpring
@@ -13,5 +14,7 @@ public class TestSpring {
 
     public static void main(String[] args) {
         ApplicationContext context = new AnnotationConfigApplicationContext("com.cakemonster.framework.controller");
+        TestController testController = (TestController)context.getBean("testController");
+        testController.sayHello();
     }
 }

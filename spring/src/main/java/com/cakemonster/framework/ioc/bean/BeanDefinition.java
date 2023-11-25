@@ -1,10 +1,7 @@
-package com.cakemonster.framework.ioc;
+package com.cakemonster.framework.ioc.bean;
 
-import com.google.common.collect.Lists;
+import com.cakemonster.framework.ioc.meta.AnnotationMetaData;
 import lombok.Data;
-
-import java.io.File;
-import java.util.List;
 
 /**
  * BeanDefinition
@@ -25,7 +22,7 @@ public class BeanDefinition {
 
     private String resource;
 
-    private List<PropertyValue> propertyValues = Lists.newArrayList();
+    private PropertyValues propertyValues;
 
     public BeanDefinition() {
     }
