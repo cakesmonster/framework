@@ -72,13 +72,13 @@ public class RequestMappingHandlerMapping {
             Pattern pattern = Pattern.compile(methodMapping);
             HandlerMethod handlerMethod = new HandlerMethod(beanDefinition.getBean(), method, pattern);
             Parameter[] parameters = method.getParameters();
-            for (int j = 0; j < parameters.length; j++) {
-                Parameter parameter = parameters[j];
+            for (int i = 0; i < parameters.length; i++) {
+                Parameter parameter = parameters[i];
                 if (parameter.getType() == HttpServletRequest.class
                     || parameter.getType() == HttpServletResponse.class) {
-                    handlerMethod.getParamIndexMapping().put(parameter.getType().getSimpleName(), j);
+                    handlerMethod.getParamIndexMapping().put(parameter.getType().getSimpleName(), i);
                 } else {
-                    handlerMethod.getParamIndexMapping().put(parameter.getName(), j);
+                    handlerMethod.getParamIndexMapping().put(parameter.getName(), i);
                 }
             }
             registry.put(methodMapping, handlerMethod);

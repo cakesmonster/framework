@@ -56,7 +56,7 @@ public class DispatcherServlet extends HttpServlet {
         }
         // 参数绑定
         Class<?>[] parameterTypes = handlerMethod.getMethod().getParameterTypes();
-        List<Object> paramValues = Lists.newArrayList();
+        List<Object> paramValues = Lists.newArrayListWithCapacity(parameterTypes.length);
         Map<String, String[]> parameterMap = req.getParameterMap();
         for (Map.Entry<String, String[]> param : parameterMap.entrySet()) {
             String paramValue = Joiner.on(",").join(param.getValue());
