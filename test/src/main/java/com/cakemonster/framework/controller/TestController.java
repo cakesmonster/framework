@@ -4,6 +4,9 @@ import com.cakemonster.framework.ioc.anno.Autowired;
 import com.cakemonster.framework.ioc.anno.Controller;
 import com.cakemonster.framework.ioc.anno.RequestMapping;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
 /**
  * Controller
  *
@@ -16,8 +19,14 @@ public class TestController {
     @Autowired
     private TestService testService;
 
-    @RequestMapping("/sayHello")
-    public void sayHello() {
+    @RequestMapping("/test")
+    public void test() {
         testService.sayHello();
+    }
+
+    @RequestMapping("/sayHello")
+    public void sayHello(HttpServletResponse resp) throws IOException {
+        testService.sayHello();
+        resp.getWriter().write("hello");
     }
 }
