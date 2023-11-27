@@ -36,30 +36,6 @@ public abstract class AbstractApplicationContext implements ApplicationContext {
         }
     }
 
-    public void registerBeanPostProcessorsDefinition(Class<?> clazz) {
-        AnnotationMetaData meta = new AnnotationMetaData();
-        meta.setClazz(clazz);
-        meta.setAnnotations(clazz.getAnnotations());
-        meta.setInterfaces(clazz.getInterfaces());
-        meta.setBeanClassName(clazz.getName());
-        BeanDefinition beanDefinition = new BeanDefinition(meta);
-        String beanName = BeanNameUtil.generateBeanName(beanDefinition);
-        beanFactory.registerBeanDefinition(beanName, beanDefinition);
-        // 接口
-        Class<?>[] interfaces = beanDefinition.getMetaData().getInterfaces();
-        if (interfaces == null || interfaces.length == 0) {
-            return;
-        }
-        for (Class<?> anInterface : interfaces) {
-            if (anInterface.equals(BeanFactoryAware.class) || anInterface.equals(BeanPostProcessor.class)) {
-                continue;
-            }
-            String interfaceTypeName = anInterface.getTypeName();
-            String interfaceBeanName = BeanNameUtil.generateBeanName(interfaceTypeName);
-            beanFactory.registerBeanDefinition(interfaceBeanName, beanDefinition);
-        }
-    }
-
     protected void refresh() {
         try {
             registerBeanPostProcessorsDefinition(AutowiredAnnotationBeanPostProcessor.class);
@@ -77,6 +53,17 @@ public abstract class AbstractApplicationContext implements ApplicationContext {
         for (Object beanPostProcessor : beanPostProcessors) {
             beanFactory.addBeanPostProcessor((BeanPostProcessor)beanPostProcessor);
         }
+    }
+
+    private void registerBeanPostProcessorsDefinition(Class<?> clazz) {
+        AnnotationMetaData meta = new AnnotationMetaData();
+        meta.setClazz(clazz);
+        meta.setAnnotations(clazz.getAnnotations());
+        meta.setInterfaces(clazz.getInterfaces());
+        meta.setBeanClassName(clazz.getName());
+        BeanDefinition beanDefinition = new BeanDefinition(meta);
+        String beanName = BeanNameUtil.generateBeanName(beanDefinition);
+        beanFactory.registerBeanDefinition(beanName, beanDefinition);
     }
 
 }

@@ -55,6 +55,7 @@ public abstract class AbstractBeanFactory implements BeanFactory {
     public List<Object> getBeansForType(Class<?> type) throws Exception {
         List<Object> beans = Lists.newArrayList();
         for (String beanDefinitionName : beanDefinitionNames) {
+            // 判断类是否实现了接口或者继承了父类
             if (type.isAssignableFrom(registry.get(beanDefinitionName).getBeanClass())) {
                 beans.add(getBean(beanDefinitionName));
             }
