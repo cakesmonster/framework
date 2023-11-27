@@ -2,8 +2,11 @@ package com.cakemonster.framework.mvc.handler;
 
 import com.cakemonster.framework.ioc.anno.Controller;
 import com.cakemonster.framework.ioc.anno.RequestMapping;
+import com.cakemonster.framework.ioc.aware.BeanFactoryAware;
 import com.cakemonster.framework.ioc.bean.BeanDefinition;
 import com.cakemonster.framework.ioc.context.AnnotationConfigApplicationContext;
+import com.cakemonster.framework.ioc.factory.AbstractBeanFactory;
+import com.cakemonster.framework.ioc.factory.BeanFactory;
 import com.cakemonster.framework.ioc.meta.AnnotationMetaData;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -28,15 +31,11 @@ import java.util.stream.Collectors;
  * @date 2023/11/25
  */
 @Getter
-public class RequestMappingHandlerMapping {
+public class RequestMappingHandlerMapping implements BeanFactoryAware {
 
-    private final AnnotationConfigApplicationContext context;
+    private AbstractBeanFactory beanFactory;
 
     private final Map<String, HandlerMethod> registry = Maps.newConcurrentMap();
-
-    public RequestMappingHandlerMapping(AnnotationConfigApplicationContext context) {
-        this.context = context;
-    }
 
     public void initHandlerMethods() {
         for (BeanDefinition beanDefinition : getCandidateBeanNames()) {
@@ -45,7 +44,7 @@ public class RequestMappingHandlerMapping {
     }
 
     private List<BeanDefinition> getCandidateBeanNames() {
-        return Lists.newArrayList(context.getRegister().values());
+        return Lists.newArrayList(beanFactory.getRegistry().values());
     }
 
     private void processCandidateBean(BeanDefinition beanDefinition) {
@@ -83,5 +82,10 @@ public class RequestMappingHandlerMapping {
             }
             registry.put(methodMapping, handlerMethod);
         }
+    }
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws Exception {
+        this.beanFactory = (AbstractBeanFactory)beanFactory;
     }
 }

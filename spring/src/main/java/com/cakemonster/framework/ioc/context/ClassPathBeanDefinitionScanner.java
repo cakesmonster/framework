@@ -2,12 +2,10 @@ package com.cakemonster.framework.ioc.context;
 
 import com.cakemonster.framework.ioc.anno.Component;
 import com.cakemonster.framework.ioc.bean.BeanDefinition;
+import com.cakemonster.framework.ioc.factory.AbstractBeanFactory;
 import com.cakemonster.framework.ioc.meta.AnnotationMetaData;
 import com.cakemonster.framework.ioc.util.BeanNameUtil;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import lombok.Getter;
 
@@ -28,26 +26,26 @@ import java.util.Set;
 @Getter
 public class ClassPathBeanDefinitionScanner {
 
-    private final Map<String, BeanDefinition> registry;
+    private final AbstractBeanFactory beanFactory;
 
-    public ClassPathBeanDefinitionScanner(Map<String, BeanDefinition> registry) {
-        this.registry = registry;
+    public ClassPathBeanDefinitionScanner(AbstractBeanFactory beanFactory) {
+        this.beanFactory = beanFactory;
     }
 
     public void scan(String scanPackage) {
         Set<BeanDefinition> beanDefinitions = findCandidateComponents(scanPackage);
         for (BeanDefinition beanDefinition : beanDefinitions) {
             String beanName = BeanNameUtil.generateBeanName(beanDefinition);
-            registry.put(beanName, beanDefinition);
+            beanFactory.registerBeanDefinition(beanName, beanDefinition);
             // 接口
             Class<?>[] interfaces = beanDefinition.getMetaData().getInterfaces();
-            if (interfaces == null) {
+            if (interfaces == null || interfaces.length == 0) {
                 continue;
             }
             for (Class<?> anInterface : interfaces) {
                 String interfaceTypeName = anInterface.getTypeName();
                 String interfaceBeanName = BeanNameUtil.generateBeanName(interfaceTypeName);
-                registry.put(interfaceBeanName, beanDefinition);
+                beanFactory.registerBeanDefinition(interfaceBeanName, beanDefinition);
             }
         }
     }

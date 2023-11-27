@@ -1,6 +1,17 @@
 package com.cakemonster.framework.ioc.context;
 
+import com.cakemonster.framework.ioc.aware.BeanFactoryAware;
+import com.cakemonster.framework.ioc.bean.BeanDefinition;
+import com.cakemonster.framework.ioc.factory.AbstractBeanFactory;
 import com.cakemonster.framework.ioc.factory.BeanFactory;
+import com.cakemonster.framework.ioc.meta.AnnotationMetaData;
+import com.cakemonster.framework.ioc.processor.AutowiredAnnotationBeanPostProcessor;
+import com.cakemonster.framework.ioc.processor.BeanPostProcessor;
+import com.cakemonster.framework.ioc.util.BeanNameUtil;
+import com.cakemonster.framework.mvc.handler.RequestMappingHandlerMapping;
+
+import java.lang.annotation.Annotation;
+import java.util.List;
 
 /**
  * AbstractApplicationContext
@@ -10,19 +21,62 @@ import com.cakemonster.framework.ioc.factory.BeanFactory;
  */
 public abstract class AbstractApplicationContext implements ApplicationContext {
 
-    protected BeanFactory beanFactory;
+    protected AbstractBeanFactory beanFactory;
 
-    public AbstractApplicationContext(BeanFactory beanFactory) {
+    public AbstractApplicationContext(AbstractBeanFactory beanFactory) {
         this.beanFactory = beanFactory;
-    }
-
-    public void refresh() {
-        beanFactory.refresh();
     }
 
     @Override
     public Object getBean(String name) {
-        refresh();
-        return beanFactory.getBean(name);
+        try {
+            return beanFactory.getBean(name);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
+
+    public void registerBeanPostProcessorsDefinition(Class<?> clazz) {
+        AnnotationMetaData meta = new AnnotationMetaData();
+        meta.setClazz(clazz);
+        meta.setAnnotations(clazz.getAnnotations());
+        meta.setInterfaces(clazz.getInterfaces());
+        meta.setBeanClassName(clazz.getName());
+        BeanDefinition beanDefinition = new BeanDefinition(meta);
+        String beanName = BeanNameUtil.generateBeanName(beanDefinition);
+        beanFactory.registerBeanDefinition(beanName, beanDefinition);
+        // 接口
+        Class<?>[] interfaces = beanDefinition.getMetaData().getInterfaces();
+        if (interfaces == null || interfaces.length == 0) {
+            return;
+        }
+        for (Class<?> anInterface : interfaces) {
+            if (anInterface.equals(BeanFactoryAware.class) || anInterface.equals(BeanPostProcessor.class)) {
+                continue;
+            }
+            String interfaceTypeName = anInterface.getTypeName();
+            String interfaceBeanName = BeanNameUtil.generateBeanName(interfaceTypeName);
+            beanFactory.registerBeanDefinition(interfaceBeanName, beanDefinition);
+        }
+    }
+
+    protected void refresh() {
+        try {
+            registerBeanPostProcessorsDefinition(AutowiredAnnotationBeanPostProcessor.class);
+            // 注册postProcessor
+            registerBeanPostProcessors(beanFactory);
+            // 实例化
+            beanFactory.preInstantiateSingletons();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected void registerBeanPostProcessors(AbstractBeanFactory beanFactory) throws Exception {
+        List<Object> beanPostProcessors = beanFactory.getBeansForType(BeanPostProcessor.class);
+        for (Object beanPostProcessor : beanPostProcessors) {
+            beanFactory.addBeanPostProcessor((BeanPostProcessor)beanPostProcessor);
+        }
+    }
+
 }

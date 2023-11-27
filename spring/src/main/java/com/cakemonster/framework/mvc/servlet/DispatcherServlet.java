@@ -37,7 +37,7 @@ public class DispatcherServlet extends HttpServlet {
         doLoadConfig(contextConfigLocation);
         String scanPackage = properties.getProperty("scanPackage");
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(scanPackage);
-        handlerMapping = new RequestMappingHandlerMapping(context);
+        handlerMapping = (RequestMappingHandlerMapping)context.getBean("requestMappingHandlerMapping");
         handlerMapping.initHandlerMethods();
         System.out.println("mvc初始化完成...");
     }

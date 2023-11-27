@@ -1,15 +1,13 @@
 package com.cakemonster.framework.ioc.processor;
 
-import com.cakemonster.framework.ioc.bean.BeanDefinition;
-import com.cakemonster.framework.ioc.bean.PropertyValue;
-import com.cakemonster.framework.ioc.bean.PropertyValues;
+import com.cakemonster.framework.ioc.aware.BeanFactoryAware;
 import com.cakemonster.framework.ioc.anno.Autowired;
+import com.cakemonster.framework.ioc.factory.AbstractBeanFactory;
+import com.cakemonster.framework.ioc.factory.BeanFactory;
 import com.cakemonster.framework.ioc.meta.AutowireMetaData;
 import com.cakemonster.framework.ioc.util.BeanNameUtil;
 
 import java.lang.reflect.Field;
-import java.util.List;
-import java.util.Map;
 
 /**
  * AutowiredAnnotationBeanPostProcessor
@@ -17,14 +15,32 @@ import java.util.Map;
  * @author cakemonster
  * @date 2023/11/25
  */
-public class AutowiredAnnotationBeanPostProcessor {
+public class AutowiredAnnotationBeanPostProcessor implements BeanPostProcessor, BeanFactoryAware {
 
-    public void postProcessProperties(Object bean, Map<String, BeanDefinition> registry) {
-        AutowireMetaData meta = findAutowiringMetadata(bean.getClass());
-        inject(bean, meta, registry);
+    private AbstractBeanFactory beanFactory;
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws Exception {
+        this.beanFactory = (AbstractBeanFactory)beanFactory;
     }
 
-    private void inject(Object bean, AutowireMetaData meta, Map<String, BeanDefinition> registry) {
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName) throws Exception {
+        return bean;
+    }
+
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws Exception {
+        postProcessProperties(bean);
+        return bean;
+    }
+
+    public void postProcessProperties(Object bean) throws Exception {
+        AutowireMetaData meta = findAutowiringMetadata(bean.getClass());
+        inject(bean, meta);
+    }
+
+    private void inject(Object bean, AutowireMetaData meta) throws Exception {
         for (Field field : meta.getFields()) {
             Autowired annotation = field.getAnnotation(Autowired.class);
             String beanName = annotation.value();
@@ -33,11 +49,7 @@ public class AutowiredAnnotationBeanPostProcessor {
             }
             // 开启赋值
             field.setAccessible(true);
-            try {
-                field.set(bean, registry.get(beanName).getBean());
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
+            field.set(bean, beanFactory.getBean(beanName));
         }
     }
 
@@ -46,8 +58,7 @@ public class AutowiredAnnotationBeanPostProcessor {
         meta.setClazz(clazz);
         Field[] declaredFields = clazz.getDeclaredFields();
         for (Field declaredField : declaredFields) {
-            Autowired annotation = declaredField.getAnnotation(Autowired.class);
-            if (annotation == null) {
+            if (!declaredField.isAnnotationPresent(Autowired.class)) {
                 continue;
             }
             meta.getFields().add(declaredField);
