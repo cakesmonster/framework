@@ -17,16 +17,19 @@ import java.util.Map;
 @Getter
 public class AnnotationConfigApplicationContext extends AbstractApplicationContext {
 
+    private final AnnotatedBeanDefinitionReader annotatedBeanDefinitionReader;
+
     private final ClassPathBeanDefinitionScanner classPathBeanDefinitionScanner;
 
     public AnnotationConfigApplicationContext() {
         super(new AutowireCapableBeanFactory());
+        this.annotatedBeanDefinitionReader = new AnnotatedBeanDefinitionReader(super.beanFactory);
         this.classPathBeanDefinitionScanner = new ClassPathBeanDefinitionScanner(super.beanFactory);
     }
 
-    public AnnotationConfigApplicationContext(String basePackage) {
+    public AnnotationConfigApplicationContext(String... basePackages) {
         this();
-        classPathBeanDefinitionScanner.scan(basePackage);
+        classPathBeanDefinitionScanner.scan(basePackages);
         refresh();
     }
 

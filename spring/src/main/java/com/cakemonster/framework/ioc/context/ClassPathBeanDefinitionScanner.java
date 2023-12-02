@@ -32,20 +32,22 @@ public class ClassPathBeanDefinitionScanner {
         this.beanFactory = beanFactory;
     }
 
-    public void scan(String scanPackage) {
-        Set<BeanDefinition> beanDefinitions = findCandidateComponents(scanPackage);
-        for (BeanDefinition beanDefinition : beanDefinitions) {
-            String beanName = BeanNameUtil.generateBeanName(beanDefinition);
-            beanFactory.registerBeanDefinition(beanName, beanDefinition);
-            // 接口
-            Class<?>[] interfaces = beanDefinition.getMetaData().getInterfaces();
-            if (interfaces == null || interfaces.length == 0) {
-                continue;
-            }
-            for (Class<?> anInterface : interfaces) {
-                String interfaceTypeName = anInterface.getTypeName();
-                String interfaceBeanName = BeanNameUtil.generateBeanName(interfaceTypeName);
-                beanFactory.registerBeanDefinition(interfaceBeanName, beanDefinition);
+    public void scan(String... scanPackages) {
+        for (String scanPackage : scanPackages) {
+            Set<BeanDefinition> beanDefinitions = findCandidateComponents(scanPackage);
+            for (BeanDefinition beanDefinition : beanDefinitions) {
+                String beanName = BeanNameUtil.generateBeanName(beanDefinition);
+                beanFactory.registerBeanDefinition(beanName, beanDefinition);
+                // 接口
+                Class<?>[] interfaces = beanDefinition.getMetaData().getInterfaces();
+                if (interfaces == null || interfaces.length == 0) {
+                    continue;
+                }
+                for (Class<?> anInterface : interfaces) {
+                    String interfaceTypeName = anInterface.getTypeName();
+                    String interfaceBeanName = BeanNameUtil.generateBeanName(interfaceTypeName);
+                    beanFactory.registerBeanDefinition(interfaceBeanName, beanDefinition);
+                }
             }
         }
     }

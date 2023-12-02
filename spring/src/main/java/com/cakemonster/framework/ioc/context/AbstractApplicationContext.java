@@ -6,9 +6,11 @@ import com.cakemonster.framework.ioc.factory.AbstractBeanFactory;
 import com.cakemonster.framework.ioc.factory.BeanFactory;
 import com.cakemonster.framework.ioc.meta.AnnotationMetaData;
 import com.cakemonster.framework.ioc.processor.AutowiredAnnotationBeanPostProcessor;
+import com.cakemonster.framework.ioc.processor.BeanFactoryPostProcessor;
 import com.cakemonster.framework.ioc.processor.BeanPostProcessor;
 import com.cakemonster.framework.ioc.util.BeanNameUtil;
 import com.cakemonster.framework.mvc.handler.RequestMappingHandlerMapping;
+import com.google.common.collect.Lists;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
@@ -20,6 +22,8 @@ import java.util.List;
  * @date 2023/11/25
  */
 public abstract class AbstractApplicationContext implements ApplicationContext {
+
+    private final List<BeanFactoryPostProcessor> beanFactoryPostProcessors = Lists.newArrayList();
 
     protected AbstractBeanFactory beanFactory;
 
@@ -38,13 +42,28 @@ public abstract class AbstractApplicationContext implements ApplicationContext {
 
     protected void refresh() {
         try {
-            registerBeanPostProcessorsDefinition(AutowiredAnnotationBeanPostProcessor.class);
+            // TODO(hzq): 在refresh方法里没看到是什么时候add的
+            addBeanFactoryPostProcessor(beanFactory);
+            invokeBeanFactoryPostProcessors(beanFactory);
             // 注册postProcessor
             registerBeanPostProcessors(beanFactory);
             // 实例化
             beanFactory.preInstantiateSingletons();
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void addBeanFactoryPostProcessor(AbstractBeanFactory beanFactory) throws Exception {
+        List<Object> beanPostProcessors = beanFactory.getBeansForType(BeanFactoryPostProcessor.class);
+        for (Object beanPostProcessor : beanPostProcessors) {
+            beanFactoryPostProcessors.add((BeanFactoryPostProcessor)beanPostProcessor);
+        }
+    }
+
+    private void invokeBeanFactoryPostProcessors(AbstractBeanFactory beanFactory) throws Exception {
+        for (BeanFactoryPostProcessor beanFactoryPostProcessor : beanFactoryPostProcessors) {
+            beanFactoryPostProcessor.postProcessBeanDefinitionRegistry(beanFactory);
         }
     }
 

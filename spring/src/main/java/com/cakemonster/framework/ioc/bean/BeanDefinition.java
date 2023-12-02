@@ -27,6 +27,17 @@ public class BeanDefinition {
     public BeanDefinition() {
     }
 
+    public BeanDefinition(Class<?> clazz) {
+        AnnotationMetaData meta = new AnnotationMetaData();
+        meta.setClazz(clazz);
+        meta.setAnnotations(clazz.getAnnotations());
+        meta.setInterfaces(clazz.getInterfaces());
+        meta.setBeanClassName(clazz.getName());
+        setBeanClass(metaData.getClazz());
+        setBeanClassName(metaData.getBeanClassName());
+        setResource(metaData.getResource());
+    }
+
     public BeanDefinition(AnnotationMetaData metaData) {
         this.metaData = metaData;
         setBeanClass(metaData.getClazz());

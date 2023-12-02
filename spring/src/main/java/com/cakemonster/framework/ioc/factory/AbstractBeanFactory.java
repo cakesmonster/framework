@@ -38,6 +38,9 @@ public abstract class AbstractBeanFactory implements BeanFactory {
     }
 
     public void registerBeanDefinition(String name, BeanDefinition beanDefinition) {
+        if (registry.containsKey(name)) {
+            throw new IllegalArgumentException("this bean name is already exist!");
+        }
         registry.put(name, beanDefinition);
         beanDefinitionNames.add(name);
     }
