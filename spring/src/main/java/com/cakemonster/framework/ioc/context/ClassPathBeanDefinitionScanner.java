@@ -3,6 +3,7 @@ package com.cakemonster.framework.ioc.context;
 import com.cakemonster.framework.ioc.anno.Component;
 import com.cakemonster.framework.ioc.bean.BeanDefinition;
 import com.cakemonster.framework.ioc.factory.AbstractBeanFactory;
+import com.cakemonster.framework.ioc.meta.AnnotationAttributes;
 import com.cakemonster.framework.ioc.meta.AnnotationMetaData;
 import com.cakemonster.framework.ioc.util.BeanNameUtil;
 import com.google.common.collect.Lists;
@@ -11,11 +12,9 @@ import lombok.Getter;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * ClassPathBeanDefinitionScanner
@@ -33,6 +32,11 @@ public class ClassPathBeanDefinitionScanner {
     }
 
     public void scan(String... scanPackages) {
+        doScan(scanPackages);
+    }
+
+    protected Set<BeanDefinition> doScan(String... scanPackages) {
+        Set<BeanDefinition> candidates = Sets.newHashSet();
         for (String scanPackage : scanPackages) {
             Set<BeanDefinition> beanDefinitions = findCandidateComponents(scanPackage);
             for (BeanDefinition beanDefinition : beanDefinitions) {
@@ -41,6 +45,7 @@ public class ClassPathBeanDefinitionScanner {
                 // 接口
                 Class<?>[] interfaces = beanDefinition.getMetaData().getInterfaces();
                 if (interfaces == null || interfaces.length == 0) {
+                    candidates.add(beanDefinition);
                     continue;
                 }
                 for (Class<?> anInterface : interfaces) {
@@ -48,8 +53,10 @@ public class ClassPathBeanDefinitionScanner {
                     String interfaceBeanName = BeanNameUtil.generateBeanName(interfaceTypeName);
                     beanFactory.registerBeanDefinition(interfaceBeanName, beanDefinition);
                 }
+                candidates.add(beanDefinition);
             }
         }
+        return candidates;
     }
 
     private Set<BeanDefinition> findCandidateComponents(String scanPackage) {
@@ -60,7 +67,7 @@ public class ClassPathBeanDefinitionScanner {
             // 1. 获取meta
             AnnotationMetaData metadataReader = getMetadataReader(resource);
             // 2. 判断是否有Component注解或者继承了Component注解
-            if (!filterHasComponentAnnotation(metadataReader)) {
+            if (!isCandidateComponent(metadataReader)) {
                 continue;
             }
             // 3. 创建BeanDefinition
@@ -70,25 +77,7 @@ public class ClassPathBeanDefinitionScanner {
         return beanDefinitions;
     }
 
-    private AnnotationMetaData getMetadataReader(String resource) {
-        String className = resource.replaceAll("/", ".");
-        try {
-            AnnotationMetaData metaData = new AnnotationMetaData();
-            Class<?> clazz = Class.forName(className);
-            Class<?>[] interfaces = clazz.getInterfaces();
-            Annotation[] annotations = clazz.getAnnotations();
-            metaData.setBeanClassName(className);
-            metaData.setClazz(clazz);
-            metaData.setInterfaces(interfaces);
-            metaData.setAnnotations(annotations);
-            metaData.setResource(resource);
-            return metaData;
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException();
-        }
-    }
-
-    private boolean filterHasComponentAnnotation(AnnotationMetaData metaData) {
+    protected boolean isCandidateComponent(AnnotationMetaData metaData) {
         Annotation[] annotations = metaData.getAnnotations();
         // 遍历注解，检查是否包含@Component或@Component的实现类
         for (Annotation annotation : annotations) {
@@ -97,6 +86,43 @@ public class ClassPathBeanDefinitionScanner {
             }
         }
         return false;
+    }
+
+    protected AnnotationMetaData getMetadataReader(String resource) {
+        String className = resource.replaceAll("/", ".");
+        Class<?> clazz = null;
+        try {
+            clazz = Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        AnnotationMetaData metaData = new AnnotationMetaData();
+        Class<?>[] interfaces = clazz.getInterfaces();
+        Annotation[] annotations = clazz.getAnnotations();
+        metaData.setBeanClassName(className);
+        metaData.setClazz(clazz);
+        metaData.setInterfaces(interfaces);
+        metaData.setAnnotations(annotations);
+        metaData.setResource(resource);
+
+        for (Annotation annotation : annotations) {
+            AnnotationAttributes annotationAttributes = new AnnotationAttributes();
+            extractAnnotationAttributes(annotationAttributes, annotation);
+            metaData.getAttributesMap().put(annotation.annotationType().getName(), annotationAttributes);
+        }
+        return metaData;
+    }
+
+    private void extractAnnotationAttributes(AnnotationAttributes annotationAttributes, Annotation annotation) {
+        Class<? extends Annotation> annotationType = annotation.annotationType();
+        for (Method method : annotationType.getDeclaredMethods()) {
+            try {
+                Object value = method.invoke(annotation);
+                annotationAttributes.put(method.getName(), value);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     private boolean isComponentAnnotation(Class<? extends Annotation> annotationType) {

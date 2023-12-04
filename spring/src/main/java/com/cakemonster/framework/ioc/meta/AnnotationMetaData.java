@@ -3,6 +3,7 @@ package com.cakemonster.framework.ioc.meta;
 import lombok.Data;
 
 import java.lang.annotation.Annotation;
+import java.util.LinkedHashMap;
 
 /**
  * AnnotationMetaData
@@ -22,4 +23,6 @@ public class AnnotationMetaData {
     private Annotation[] annotations;
 
     private String resource;
+
+    private LinkedHashMap<String, AnnotationAttributes> attributesMap = new LinkedHashMap<>(3);
 }

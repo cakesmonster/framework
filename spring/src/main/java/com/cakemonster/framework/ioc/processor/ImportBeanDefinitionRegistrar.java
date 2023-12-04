@@ -10,7 +10,7 @@ import com.cakemonster.framework.ioc.meta.AnnotationMetaData;
  * @date 2023/12/3
  */
 public interface ImportBeanDefinitionRegistrar {
-    default void registerBeanDefinitions(AbstractBeanFactory beanFactory) {
+    default void registerBeanDefinitions(AnnotationMetaData metaData, AbstractBeanFactory beanFactory) {
 
     }
 }

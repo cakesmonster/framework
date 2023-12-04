@@ -24,21 +24,24 @@ public class BeanDefinition {
 
     private PropertyValues propertyValues;
 
-    public BeanDefinition() {
+    private BeanDefinition() {
     }
 
     public BeanDefinition(Class<?> clazz) {
+        this.propertyValues = new PropertyValues();
         AnnotationMetaData meta = new AnnotationMetaData();
         meta.setClazz(clazz);
         meta.setAnnotations(clazz.getAnnotations());
         meta.setInterfaces(clazz.getInterfaces());
         meta.setBeanClassName(clazz.getName());
+        this.metaData = meta;
         setBeanClass(metaData.getClazz());
         setBeanClassName(metaData.getBeanClassName());
         setResource(metaData.getResource());
     }
 
     public BeanDefinition(AnnotationMetaData metaData) {
+        this.propertyValues = new PropertyValues();
         this.metaData = metaData;
         setBeanClass(metaData.getClazz());
         setBeanClassName(metaData.getBeanClassName());

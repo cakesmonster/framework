@@ -8,6 +8,7 @@ import com.cakemonster.framework.ioc.meta.AnnotationMetaData;
 import com.cakemonster.framework.ioc.processor.AutowiredAnnotationBeanPostProcessor;
 import com.cakemonster.framework.ioc.processor.BeanFactoryPostProcessor;
 import com.cakemonster.framework.ioc.processor.BeanPostProcessor;
+import com.cakemonster.framework.ioc.processor.ConfigurationClassPostProcessor;
 import com.cakemonster.framework.ioc.util.BeanNameUtil;
 import com.cakemonster.framework.mvc.handler.RequestMappingHandlerMapping;
 import com.google.common.collect.Lists;
@@ -42,8 +43,6 @@ public abstract class AbstractApplicationContext implements ApplicationContext {
 
     protected void refresh() {
         try {
-            // TODO(hzq): 在refresh方法里没看到是什么时候add的
-            addBeanFactoryPostProcessor(beanFactory);
             invokeBeanFactoryPostProcessors(beanFactory);
             // 注册postProcessor
             registerBeanPostProcessors(beanFactory);
@@ -54,6 +53,19 @@ public abstract class AbstractApplicationContext implements ApplicationContext {
         }
     }
 
+    private List<BeanFactoryPostProcessor> addFilterConfigurationPostProcessor(AbstractBeanFactory beanFactory)
+        throws Exception {
+        List<BeanFactoryPostProcessor> result = Lists.newArrayList();
+        List<Object> beanPostProcessors = beanFactory.getBeansForType(BeanFactoryPostProcessor.class);
+        for (Object beanPostProcessor : beanPostProcessors) {
+            if (beanPostProcessor instanceof ConfigurationClassPostProcessor) {
+                continue;
+            }
+            result.add((BeanFactoryPostProcessor)beanPostProcessor);
+        }
+        return result;
+    }
+
     private void addBeanFactoryPostProcessor(AbstractBeanFactory beanFactory) throws Exception {
         List<Object> beanPostProcessors = beanFactory.getBeansForType(BeanFactoryPostProcessor.class);
         for (Object beanPostProcessor : beanPostProcessors) {
@@ -62,7 +74,12 @@ public abstract class AbstractApplicationContext implements ApplicationContext {
     }
 
     private void invokeBeanFactoryPostProcessors(AbstractBeanFactory beanFactory) throws Exception {
+        addBeanFactoryPostProcessor(beanFactory);
         for (BeanFactoryPostProcessor beanFactoryPostProcessor : beanFactoryPostProcessors) {
+            beanFactoryPostProcessor.postProcessBeanDefinitionRegistry(beanFactory);
+        }
+        List<BeanFactoryPostProcessor> beanFactoryPostProcessors1 = addFilterConfigurationPostProcessor(beanFactory);
+        for (BeanFactoryPostProcessor beanFactoryPostProcessor : beanFactoryPostProcessors1) {
             beanFactoryPostProcessor.postProcessBeanDefinitionRegistry(beanFactory);
         }
     }
