@@ -34,7 +34,7 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
 
     @Override
     protected boolean isCandidateComponent(AnnotationMetaData metaData) {
-        return true;
+        return metaData.getClazz().isInterface();
     }
 
     private void processBeanDefinitions(Set<BeanDefinition> beanDefinitions) {
